@@ -63,7 +63,16 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction, uplupAPI) {
   if (!uplupAPI) {
     await interaction.reply({
-      content: '❌ This command requires Uplup API integration. Please configure your API key.',
+      content: '❌ **Uplup API not configured**\n\n' +
+        'To use saved wheels, the bot owner needs to:\n' +
+        '1. Get API credentials at **uplup.com/brand/api-integrations**\n' +
+        '2. Add them to the `.env` file:\n' +
+        '```\n' +
+        'UPLUP_API_KEY=your_key\n' +
+        'UPLUP_API_SECRET=your_secret\n' +
+        '```\n' +
+        '3. Restart the bot\n\n' +
+        '💡 **Tip:** Use `/spin custom` instead - it works without API setup!',
       ephemeral: true
     });
     return;
