@@ -30,7 +30,7 @@ Spin wheels with server members, roles, reactions, and more! Features animated w
 API access is **free** and enables saved wheels, plan-based limits, and usage tracking.
 
 1. **Create an account** at [uplup.com/random-name-picker](https://uplup.com/random-name-picker) (click "Sign Up" - it's free)
-2. After logging in, go to **[Dashboard > API Integrations](https://uplup.com/brand/api-integrations#api-keys)**
+2. After logging in, go to **Dashboard > API Integrations > API Keys**
 3. Click **"Create API Key"**
 4. Give it a name like "Discord Bot"
 5. **Important**: Copy both the **API Key** and **API Secret** immediately - the secret is only shown once!
