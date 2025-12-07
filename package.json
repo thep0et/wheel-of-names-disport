@@ -1,0 +1,22 @@
+{
+  "name": "uplup-discord-bot",
+  "version": "1.0.0",
+  "description": "Uplup Wheel Discord Bot - Spin wheels with server members, animated GIFs, and API integration",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js",
+    "dev": "node --watch index.js",
+    "test-gif": "node test-gif.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.56",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "gif-encoder-2": "^1.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
