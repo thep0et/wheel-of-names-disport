@@ -164,16 +164,171 @@ Pick winners from custom entry lists:
 
 ---
 
-## Plan Limits
+## Wheel Picker API
 
-| Feature | Free | Boost ($29/mo) |
-|---------|------|----------------|
-| `/spin` commands | Unlimited | Unlimited |
-| Names per wheel | 100 | 1,000,000 |
-| Saved wheels | 3 | Unlimited |
-| API requests/hour | 100 | Unlimited |
+This bot is powered by the [Uplup Wheel Picker API](https://uplup.com/api#wheel-api) — a full REST API with **33 endpoints** for creating, managing, and spinning wheels programmatically. You can use the same API to build your own integrations beyond Discord.
 
-Upgrade at [uplup.com/pricing](https://uplup.com/pricing)
+### Free Plan — What You Get
+
+API access is **free on all plans**, and the Free tier is generous:
+
+| | Free Plan |
+|--|-----------|
+| **Access** | Read-only |
+| **Rate limit** | 2/second, 60/minute, 1,000/hour |
+| **API keys** | 1 |
+| **Names per wheel** | 100 |
+| **Saved wheels** | 3 |
+| **`/spin` commands** | Unlimited |
+
+Higher limits, write access, webhooks, and sharing are available on [paid plans](https://uplup.com/pricing). See [rate limiting details](https://uplup.com/api#rate-limiting) for the full breakdown.
+
+### Authentication
+
+All requests use Bearer token authentication:
+
+```
+Authorization: Bearer uplup_live_your_key_here
+```
+
+Get your free API key: Sign up at [uplup.com](https://uplup.com/random-name-picker) → Dashboard → API Integrations → Create API Key.
+
+### API Base URL
+
+```
+https://api.uplup.com/api/v1/wheels
+```
+
+### Endpoints Overview
+
+The API covers **33 endpoints** across 8 categories:
+
+#### Wheels (CRUD)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/wheels` | List all wheels (paginated, filterable by status) |
+| `POST` | `/wheels` | Create a new wheel |
+| `GET` | `/wheels/{id}` | Get wheel with all entries, settings, and winners |
+| `PUT` | `/wheels/{id}` | Update wheel name, entries, or settings |
+| `DELETE` | `/wheels/{id}` | Delete a wheel |
+| `POST` | `/wheels/{id}/clone` | Clone a wheel |
+| `POST` | `/wheels/{id}/archive` | Archive a wheel |
+| `POST` | `/wheels/{id}/restore` | Restore an archived wheel |
+
+#### Entries
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/wheels/{id}/entries` | Get all entries (shows source: manual or CSV) |
+| `POST` | `/wheels/{id}/entries` | Append new entries to a wheel |
+| `PUT` | `/wheels/{id}/entries` | Replace all entries |
+| `DELETE` | `/wheels/{id}/entries` | Remove entries by index or name |
+
+#### Spins & Results
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/wheels/{id}/spin` | Record a spin with winner |
+| `GET` | `/wheels/{id}/results` | Get all winners with timestamps |
+| `DELETE` | `/wheels/{id}/results` | Clear all results |
+| `GET` | `/wheels/{id}/history` | Full action history (filterable by date range) |
+| `GET` | `/wheels/{id}/stats` | Spin stats: total spins, unique winners, recent history |
+
+#### Appearance & Settings
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/wheels/{id}/settings` | Get all wheel settings |
+| `PUT` | `/wheels/{id}/settings` | Update settings (colors, audio, confetti, teams, etc.) |
+| `PUT` | `/wheels/{id}/appearance` | Update visual appearance (colors, fonts, needle style) |
+| `GET` | `/wheels/{id}/background` | Get background image |
+| `PUT` | `/wheels/{id}/background` | Set background image |
+| `DELETE` | `/wheels/{id}/background` | Remove background image |
+
+#### Sharing & Embedding
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/wheels/{id}/share` | Get share URL and public status |
+| `PUT` | `/wheels/{id}/share` | Make wheel public or private |
+| `GET` | `/wheels/{id}/embed` | Get iframe embed code for websites |
+
+#### Webhooks (8 event types)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/webhooks` | List all webhooks |
+| `POST` | `/webhooks` | Create webhook (events: `spin.completed`, `winner.selected`, `wheel.created`, etc.) |
+| `GET` | `/webhooks/{id}` | Get webhook details with recent delivery log |
+| `PUT` | `/webhooks/{id}` | Update webhook URL or toggle active/inactive |
+| `DELETE` | `/webhooks/{id}` | Delete webhook |
+| `POST` | `/webhooks/{id}/test` | Send test payload and verify delivery |
+
+**Webhook events:** `wheel.created`, `wheel.updated`, `wheel.deleted`, `spin.completed`, `winner.selected`, `entries.changed`, `entries.added`, `entries.removed`
+
+#### Account
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/account` | Plan info, usage, limits, and feature flags |
+
+### Quick Examples
+
+**List your wheels:**
+```bash
+curl https://api.uplup.com/api/v1/wheels \
+  -H "Authorization: Bearer uplup_live_your_key_here"
+```
+
+**Create a wheel:**
+```bash
+curl -X POST https://api.uplup.com/api/v1/wheels \
+  -H "Authorization: Bearer uplup_live_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wheel_name": "Lunch Picker",
+    "entries": ["Pizza", "Sushi", "Tacos", "Burgers", "Salad"],
+    "settings": {
+      "selectedColorSet": "vibrant",
+      "enableConfetti": true,
+      "removeAfterWin": false
+    }
+  }'
+```
+
+**Get wheel stats:**
+```bash
+curl https://api.uplup.com/api/v1/wheels/WHEEL_ID/stats \
+  -H "Authorization: Bearer uplup_live_your_key_here"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "stats": {
+      "total_spins": 42,
+      "unique_winners": 5,
+      "total_entries": 8,
+      "recent_history": [
+        { "winner": "Pizza", "spin_timestamp": "2026-03-09T14:51:00Z" }
+      ]
+    }
+  }
+}
+```
+
+**Add entries to an existing wheel:**
+```bash
+curl -X POST https://api.uplup.com/api/v1/wheels/WHEEL_ID/entries \
+  -H "Authorization: Bearer uplup_live_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"entries": ["Ramen", "Pho", "Pasta"]}'
+```
+
+Full API documentation: **[uplup.com/api#wheel-api](https://uplup.com/api#wheel-api)**
 
 ---
 
@@ -240,7 +395,8 @@ Enable **Server Members Intent** in Discord Developer Portal > Bot settings.
 ## Related Tools
 
 - **[Random Name Picker](https://uplup.com/random-name-picker)** - Web-based wheel of names tool
-- **[Wheel Picker API](https://uplup.com/api)** - REST API for wheel integrations
+- **[Wheel Picker API](https://uplup.com/api#wheel-api)** - REST API for wheel integrations (free access included)
+- **[API Rate Limiting](https://uplup.com/api#rate-limiting)** - Rate limits and free tier details
 - **[Giveaway Tool](https://uplup.com/giveaway)** - Full-featured contest platform
 
 ---
@@ -250,7 +406,7 @@ Enable **Server Members Intent** in Discord Developer Portal > Bot settings.
 - **Issues**: [GitHub Issues](https://github.com/Uplup/discord-wheel-of-names/issues)
 - **Website**: [uplup.com](https://uplup.com)
 - **Name Picker**: [uplup.com/random-name-picker](https://uplup.com/random-name-picker)
-- **API Docs**: [uplup.com/api](https://uplup.com/api)
+- **API Docs**: [uplup.com/api#wheel-api](https://uplup.com/api#wheel-api)
 
 ---
 
