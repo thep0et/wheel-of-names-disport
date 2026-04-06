@@ -2,7 +2,10 @@
 
 A free, open-source, **self-hosted wheel of names Discord bot** for spinning random name pickers directly in your server. Perfect for giveaways, raffles, random selections, and picking winners from your community.
 
-Looking for a **Discord wheel of names** solution? This self-hosted bot brings the popular wheel picker experience to Discord with animated GIF spins, custom entries, and seamless integration with [Uplup's Random Name Picker](https://uplup.com/random-name-picker). Host it yourself on Railway, DigitalOcean, or any VPS for full control over your data.
+This project is a fork of https://github.com/Uplup/discord-wheel-of-names with the goal of removing API and priveleged gateway to better align with discord's policies.
+We also recongize that the use of this app may extend far beyond those listed and may be used for some NSFW or discrete activities.  Therefore the API will be replaced by an ability to export, save, and keep your wheels long term.  Allowing users to use wheels they've created across any servers without putting the developers at risk, should it be used for any illegal or illecit activites. 
+Credit to uplup for the core functionality of this app.
+ Host it yourself on Railway, DigitalOcean, or any VPS for full control over your data.
 
 ## Why Use This Wheel of Names Bot for Discord?
 
@@ -17,7 +20,7 @@ Looking for a **Discord wheel of names** solution? This self-hosted bot brings t
 ## Features
 
 ### Spin Types
-- **Server Members** - Random name picker from all members or filtered by role
+- **Server Members** - Random name picker from all members or filtered by role  ##Currently removed from the original fork
 - **Custom Entries** - Wheel of names with any entries you provide
 - **Reaction Picker** - Pick winners from users who reacted to a message
 - **Voice Channel** - Random selection from voice channel participants
@@ -38,27 +41,10 @@ Looking for a **Discord wheel of names** solution? This self-hosted bot brings t
 2. Click **"New Application"** and name it (e.g., "Wheel of Names Bot")
 3. Go to **"Bot"** section and click **"Add Bot"**
 4. Click **"Reset Token"** and copy the **Bot Token** (keep this secret!)
-5. Enable these **Privileged Gateway Intents**:
-   - Server Members Intent
-   - Message Content Intent
-6. Copy your **Application ID** from the "General Information" page
+5. Copy your **Application ID** from the "General Information" page
 
-### 2. Get Your Uplup API Key (Free)
 
-API access is **free** and enables saved wheels and usage tracking.
-
-1. **Create an account** at [uplup.com/random-name-picker](https://uplup.com/random-name-picker) (click "Sign Up" - it's free)
-2. After logging in, go to **Dashboard > API Integrations > API Keys**
-3. Click **"Create API Key"**
-4. Give it a name like "Discord Bot"
-5. **Important**: Copy the **API Key** immediately - it's only shown once!
-
-Your API key is your Bearer token. It looks like `uplup_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`.
-
-**Free plan limits**: 100 API requests/hour, 100 names/wheel, 3 saved wheels
-**Boost plan ($29/mo)**: Unlimited requests, unlimited names, unlimited wheels
-
-### 3. Configure the Bot
+### 2. Configure the Bot
 
 ```bash
 # Clone the repository
@@ -76,12 +62,9 @@ Edit `.env` with your credentials:
 DISCORD_TOKEN=paste_your_bot_token_here
 DISCORD_CLIENT_ID=paste_your_application_id_here
 
-# Uplup API Configuration (Required for saved wheels)
-UPLUP_API_KEY=uplup_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-UPLUP_API_BASE_URL=https://api.uplup.com/api/v1
 ```
 
-### 4. Install & Run
+### 3. Install & Run
 
 ```bash
 # Install dependencies
@@ -94,7 +77,7 @@ npm run deploy
 npm start
 ```
 
-### 5. Add Bot to Your Server
+### 4. Add Bot to Your Server
 
 The bot will print an invite URL when it starts:
 ```
@@ -162,177 +145,6 @@ Pick winners from custom entry lists:
 ```
 /spin custom entries:Alice, Bob, Charlie, Diana
 ```
-
----
-
-## Wheel Picker API
-
-This bot is powered by the [Uplup Wheel Picker API](https://uplup.com/api#wheel-api) — a full REST API with **33 endpoints** for creating, managing, and spinning wheels programmatically. You can use the same API to build your own integrations beyond Discord.
-
-### Free Plan — What You Get
-
-API access is **free on all plans**, and the Free tier is generous:
-
-| | Free Plan |
-|--|-----------|
-| **Access** | Read-only |
-| **Rate limit** | 2/second, 60/minute, 1,000/hour |
-| **API keys** | 1 |
-| **Names per wheel** | 100 |
-| **Saved wheels** | 3 |
-| **`/spin` commands** | Unlimited |
-
-Higher limits, write access, webhooks, and sharing are available on [paid plans](https://uplup.com/pricing). See [rate limiting details](https://uplup.com/api#rate-limiting) for the full breakdown.
-
-### Authentication
-
-All requests use Bearer token authentication:
-
-```
-Authorization: Bearer uplup_live_your_key_here
-```
-
-Get your free API key: Sign up at [uplup.com](https://uplup.com/random-name-picker) → Dashboard → API Integrations → Create API Key.
-
-### API Base URL
-
-```
-https://api.uplup.com/api/v1/wheels
-```
-
-### Endpoints Overview
-
-The API covers **33 endpoints** across 8 categories:
-
-#### Wheels (CRUD)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/wheels` | List all wheels (paginated, filterable by status) |
-| `POST` | `/wheels` | Create a new wheel |
-| `GET` | `/wheels/{id}` | Get wheel with all entries, settings, and winners |
-| `PUT` | `/wheels/{id}` | Update wheel name, entries, or settings |
-| `DELETE` | `/wheels/{id}` | Delete a wheel |
-| `POST` | `/wheels/{id}/clone` | Clone a wheel |
-| `POST` | `/wheels/{id}/archive` | Archive a wheel |
-| `POST` | `/wheels/{id}/restore` | Restore an archived wheel |
-
-#### Entries
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/wheels/{id}/entries` | Get all entries (shows source: manual or CSV) |
-| `POST` | `/wheels/{id}/entries` | Append new entries to a wheel |
-| `PUT` | `/wheels/{id}/entries` | Replace all entries |
-| `DELETE` | `/wheels/{id}/entries` | Remove entries by index or name |
-
-#### Spins & Results
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/wheels/{id}/spin` | Record a spin with winner |
-| `GET` | `/wheels/{id}/results` | Get all winners with timestamps |
-| `DELETE` | `/wheels/{id}/results` | Clear all results |
-| `GET` | `/wheels/{id}/history` | Full action history (filterable by date range) |
-| `GET` | `/wheels/{id}/stats` | Spin stats: total spins, unique winners, recent history |
-
-#### Appearance & Settings
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/wheels/{id}/settings` | Get all wheel settings |
-| `PUT` | `/wheels/{id}/settings` | Update settings (colors, audio, confetti, teams, etc.) |
-| `PUT` | `/wheels/{id}/appearance` | Update visual appearance (colors, fonts, needle style) |
-| `GET` | `/wheels/{id}/background` | Get background image |
-| `PUT` | `/wheels/{id}/background` | Set background image |
-| `DELETE` | `/wheels/{id}/background` | Remove background image |
-
-#### Sharing & Embedding
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/wheels/{id}/share` | Get share URL and public status |
-| `PUT` | `/wheels/{id}/share` | Make wheel public or private |
-| `GET` | `/wheels/{id}/embed` | Get iframe embed code for websites |
-
-#### Webhooks (8 event types)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/webhooks` | List all webhooks |
-| `POST` | `/webhooks` | Create webhook (events: `spin.completed`, `winner.selected`, `wheel.created`, etc.) |
-| `GET` | `/webhooks/{id}` | Get webhook details with recent delivery log |
-| `PUT` | `/webhooks/{id}` | Update webhook URL or toggle active/inactive |
-| `DELETE` | `/webhooks/{id}` | Delete webhook |
-| `POST` | `/webhooks/{id}/test` | Send test payload and verify delivery |
-
-**Webhook events:** `wheel.created`, `wheel.updated`, `wheel.deleted`, `spin.completed`, `winner.selected`, `entries.changed`, `entries.added`, `entries.removed`
-
-#### Account
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/account` | Plan info, usage, limits, and feature flags |
-
-### Quick Examples
-
-**List your wheels:**
-```bash
-curl https://api.uplup.com/api/v1/wheels \
-  -H "Authorization: Bearer uplup_live_your_key_here"
-```
-
-**Create a wheel:**
-```bash
-curl -X POST https://api.uplup.com/api/v1/wheels \
-  -H "Authorization: Bearer uplup_live_your_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "wheel_name": "Lunch Picker",
-    "entries": ["Pizza", "Sushi", "Tacos", "Burgers", "Salad"],
-    "settings": {
-      "selectedColorSet": "vibrant",
-      "enableConfetti": true,
-      "removeAfterWin": false
-    }
-  }'
-```
-
-**Get wheel stats:**
-```bash
-curl https://api.uplup.com/api/v1/wheels/WHEEL_ID/stats \
-  -H "Authorization: Bearer uplup_live_your_key_here"
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "stats": {
-      "total_spins": 42,
-      "unique_winners": 5,
-      "total_entries": 8,
-      "recent_history": [
-        { "winner": "Pizza", "spin_timestamp": "2026-03-09T14:51:00Z" }
-      ]
-    }
-  }
-}
-```
-
-**Add entries to an existing wheel:**
-```bash
-curl -X POST https://api.uplup.com/api/v1/wheels/WHEEL_ID/entries \
-  -H "Authorization: Bearer uplup_live_your_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{"entries": ["Ramen", "Pho", "Pasta"]}'
-```
-
-Full API documentation: **[uplup.com/api#wheel-api](https://uplup.com/api#wheel-api)**
-
----
-
 ## Hosting Options
 
 ### Option 1: Railway (Recommended)
@@ -372,42 +184,6 @@ npm run dev
 # Test GIF generation locally
 npm run test-gif
 ```
-
----
-
-## Troubleshooting
-
-### "Uplup API not configured"
-Make sure you've added `UPLUP_API_KEY` to your `.env` file. The key should start with `uplup_live_` or `uplup_test_`.
-
-### "This command requires Uplup API integration"
-The `/wheel` commands need API keys configured. The `/spin` commands work without API keys.
-
-### Bot doesn't respond to commands
-1. Make sure you ran `npm run deploy` after any command changes
-2. Check that the bot has proper permissions in the channel
-3. Verify the bot is online (green status)
-
-### "Missing Server Members Intent"
-Enable **Server Members Intent** in Discord Developer Portal > Bot settings.
-
----
-
-## Related Tools
-
-- **[Random Name Picker](https://uplup.com/random-name-picker)** - Web-based wheel of names tool
-- **[Wheel Picker API](https://uplup.com/api#wheel-api)** - REST API for wheel integrations (free access included)
-- **[API Rate Limiting](https://uplup.com/api#rate-limiting)** - Rate limits and free tier details
-- **[Giveaway Tool](https://uplup.com/giveaway)** - Full-featured contest platform
-
----
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/Uplup/discord-wheel-of-names/issues)
-- **Website**: [uplup.com](https://uplup.com)
-- **Name Picker**: [uplup.com/random-name-picker](https://uplup.com/random-name-picker)
-- **API Docs**: [uplup.com/api#wheel-api](https://uplup.com/api#wheel-api)
 
 ---
 
