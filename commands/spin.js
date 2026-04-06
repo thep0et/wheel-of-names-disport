@@ -6,36 +6,6 @@ export const data = new SlashCommandBuilder()
   .setDescription('Spin a wheel to pick a random winner')
   .addSubcommand(subcommand =>
     subcommand
-      .setName('members')
-      .setDescription('Spin with server members')
-      .addRoleOption(option =>
-        option
-          .setName('role')
-          .setDescription('Only include members with this role')
-          .setRequired(false)
-      )
-      .addBooleanOption(option =>
-        option
-          .setName('exclude_bots')
-          .setDescription('Exclude bots from the spin (default: true)')
-          .setRequired(false)
-      )
-      .addStringOption(option =>
-        option
-          .setName('color')
-          .setDescription('Color theme for the wheel')
-          .setRequired(false)
-          .addChoices(
-            { name: 'Uplup (Purple/Pink)', value: 'uplup' },
-            { name: 'Vibrant', value: 'vibrant' },
-            { name: 'Pastel', value: 'pastel' },
-            { name: 'Sunset', value: 'sunset' },
-            { name: 'Ocean', value: 'ocean' }
-          )
-      )
-  )
-  .addSubcommand(subcommand =>
-    subcommand
       .setName('custom')
       .setDescription('Spin with custom entries')
       .addStringOption(option =>
@@ -124,31 +94,6 @@ export async function execute(interaction, uplupAPI) {
 
   try {
     switch (subcommand) {
-      case 'members': {
-        const role = interaction.options.getRole('role');
-        const excludeBots = interaction.options.getBoolean('exclude_bots') ?? true;
-
-        // Fetch guild members
-        await interaction.guild.members.fetch();
-        let members = interaction.guild.members.cache;
-
-        // Filter by role if specified
-        if (role) {
-          members = members.filter(member => member.roles.cache.has(role.id));
-          wheelName = `${role.name} Members`;
-        } else {
-          wheelName = `${interaction.guild.name} Members`;
-        }
-
-        // Exclude bots if specified
-        if (excludeBots) {
-          members = members.filter(member => !member.user.bot);
-        }
-
-        entries = members.map(member => member.displayName);
-        break;
-      }
-
       case 'custom': {
         const entriesString = interaction.options.getString('entries');
         entries = entriesString.split(',').map(e => e.trim()).filter(e => e.length > 0);
