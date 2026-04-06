@@ -197,8 +197,7 @@ export async function execute(interaction, uplupAPI) {
         { name: 'Spun at', value: `<t:${spinTimestamp}:f>`, inline: true }
       )
       .setFooter({
-        text: 'Powered by Uplup',
-        iconURL: 'https://uplup.com/favicon.ico'
+        text: 'App by thep0et',
       });
 
     // Log to Uplup API if available (creates a temporary wheel for tracking)
