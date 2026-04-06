@@ -63,15 +63,9 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction, uplupAPI) {
   if (!uplupAPI) {
     await interaction.reply({
-      content: '**Uplup API not configured**\n\n' +
-        'To use saved wheels, the bot owner needs to:\n' +
-        '1. Get an API key at **uplup.com/brand/api-integrations**\n' +
-        '2. Add it to the `.env` file:\n' +
+      content: '**Saved wheel feature is still under development**\n\n' +
         '```\n' +
-        'UPLUP_API_KEY=uplup_live_your_key_here\n' +
-        '```\n' +
-        '3. Restart the bot\n\n' +
-        '**Tip:** Use `/spin custom` instead - it works without API setup!',
+        '**Tip:** Use `/spin custom` instead!',
       ephemeral: true
     });
     return;
@@ -80,6 +74,8 @@ export async function execute(interaction, uplupAPI) {
   await interaction.deferReply();
 
   const subcommand = interaction.options.getSubcommand();
+
+  //Below are API settings created by the original developer.  Not needed but keeping around in case logic is usefull later for saved wheel functions.
 
   try {
     switch (subcommand) {
