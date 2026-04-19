@@ -1,8 +1,11 @@
 import {
   SlashCommandBuilder,
   ChannelType,
-  PermissionFlagsBits
+  PermissionFlagsBits,
+  EmbedBuilder,
+  AttachmentBuilder
 } from 'discord.js';
+import { generateWheelGIF } from '../wheel-generator.js';
 
 const CONFIG_MARKER = 'WHEEL_BOT_CONFIG_v1';
 const DEFAULT_SPIN_CHANNEL_NAME = 'wheel-spin';
@@ -111,6 +114,19 @@ function getMissingChannelPerms(channel, me, requiredPerms) {
   return requiredPerms.filter(perm => !perms.has(perm));
 }
 
+function formatPermissionNames(perms) {
+  const permissionNames = {
+    [PermissionFlagsBits.ViewChannel]: 'View Channel',
+    [PermissionFlagsBits.SendMessages]: 'Send Messages',
+    [PermissionFlagsBits.ReadMessageHistory]: 'Read Message History',
+    [PermissionFlagsBits.ManageMessages]: 'Manage Messages',
+    [PermissionFlagsBits.EmbedLinks]: 'Embed Links',
+    [PermissionFlagsBits.AttachFiles]: 'Attach Files'
+  };
+
+  return perms.map(perm => permissionNames[perm] ?? String(perm));
+}
+
 export async function execute(interaction) {
   const group = interaction.options.getSubcommandGroup(false);
   const subcommand = interaction.options.getSubcommand();
@@ -145,10 +161,7 @@ export async function execute(interaction) {
         return;
 
       case 'spin':
-        await interaction.reply({
-          content: `✅ Setup found.\nSpin channel: <#${config.wheelSpinChannelId}>\nSaved wheels channel: <#${config.savedWheelsChannelId}>\n\nSaved wheel spinning is the next piece to wire in.`,
-          ephemeral: true
-        });
+        await handleSpinWheel(interaction, config);
         return;
 
       default:
@@ -217,40 +230,42 @@ async function handleSetup(interaction, subcommand) {
     spinChannel = interaction.options.getChannel('spin_channel', true);
     savedChannel = interaction.options.getChannel('saved_channel', true);
   }
+
   const botMember = await interaction.guild.members.fetchMe();
 
-const savedMissing = getMissingChannelPerms(savedChannel, botMember, [
-  PermissionFlagsBits.ViewChannel,
-  PermissionFlagsBits.SendMessages,
-  PermissionFlagsBits.ReadMessageHistory,
-  PermissionFlagsBits.ManageMessages
-]);
+  const savedMissing = getMissingChannelPerms(savedChannel, botMember, [
+    PermissionFlagsBits.ViewChannel,
+    PermissionFlagsBits.SendMessages,
+    PermissionFlagsBits.ReadMessageHistory,
+    PermissionFlagsBits.ManageMessages
+  ]);
 
-if (savedMissing.length > 0) {
-  await interaction.editReply({
-    content:
-      `❌ I do not have enough permissions in ${savedChannel}.\n` +
-      `Missing: ${savedMissing.join(', ')}`
-  });
-  return;
-}
+  if (savedMissing.length > 0) {
+    await interaction.editReply({
+      content:
+        `❌ I do not have enough permissions in ${savedChannel}.\n` +
+        `Missing: ${formatPermissionNames(savedMissing).join(', ')}`
+    });
+    return;
+  }
 
-const spinMissing = getMissingChannelPerms(spinChannel, botMember, [
-  PermissionFlagsBits.ViewChannel,
-  PermissionFlagsBits.SendMessages,
-  PermissionFlagsBits.ReadMessageHistory,
-  PermissionFlagsBits.EmbedLinks,
-  PermissionFlagsBits.AttachFiles
-]);
+  const spinMissing = getMissingChannelPerms(spinChannel, botMember, [
+    PermissionFlagsBits.ViewChannel,
+    PermissionFlagsBits.SendMessages,
+    PermissionFlagsBits.ReadMessageHistory,
+    PermissionFlagsBits.EmbedLinks,
+    PermissionFlagsBits.AttachFiles
+  ]);
 
-if (spinMissing.length > 0) {
-  await interaction.editReply({
-    content:
-      `❌ I do not have enough permissions in ${spinChannel}.\n` +
-      `Missing: ${spinMissing.join(', ')}`
-  });
-  return;
-}
+  if (spinMissing.length > 0) {
+    await interaction.editReply({
+      content:
+        `❌ I do not have enough permissions in ${spinChannel}.\n` +
+        `Missing: ${formatPermissionNames(spinMissing).join(', ')}`
+    });
+    return;
+  }
+
   const managerRole = interaction.options.getRole('manager_role');
   const configMessage = await upsertGuildConfig({
     guild: interaction.guild,
@@ -410,6 +425,102 @@ async function handleDeleteWheel(interaction, config) {
 
   await interaction.editReply({
     content: `✅ Deleted saved wheel **${name}**.`
+  });
+}
+
+async function handleSpinWheel(interaction, config) {
+  await interaction.deferReply({ ephemeral: true });
+
+  const name = interaction.options.getString('name', true).trim();
+
+  const savedChannel = await interaction.guild.channels.fetch(config.savedWheelsChannelId);
+  if (!savedChannel || savedChannel.type !== ChannelType.GuildText) {
+    await interaction.editReply({
+      content: '❌ The saved wheels channel no longer exists. Run `/wheel setup` again.'
+    });
+    return;
+  }
+
+  const spinChannel = await interaction.guild.channels.fetch(config.wheelSpinChannelId);
+  if (!spinChannel || spinChannel.type !== ChannelType.GuildText) {
+    await interaction.editReply({
+      content: '❌ The wheel spin channel no longer exists. Run `/wheel setup` again.'
+    });
+    return;
+  }
+
+  const wheelMessage = await findWheelMessageByName(
+    savedChannel,
+    interaction.client.user.id,
+    name
+  );
+
+  if (!wheelMessage) {
+    await interaction.editReply({
+      content: `❌ Could not find a saved wheel named **${name}**.`
+    });
+    return;
+  }
+
+  const wheel = extractFirstJsonBlock(wheelMessage.content);
+  if (!wheel || wheel.type !== 'wheel' || !Array.isArray(wheel.entries)) {
+    await interaction.editReply({
+      content: `❌ Saved wheel **${name}** is invalid or could not be parsed.`
+    });
+    return;
+  }
+
+  const entries = wheel.entries
+    .map(entry => String(entry).trim())
+    .filter(Boolean);
+
+  if (entries.length < 2) {
+    await interaction.editReply({
+      content: `❌ Saved wheel **${name}** needs at least 2 entries to spin.`
+    });
+    return;
+  }
+
+  if (entries.length > 100) {
+    await interaction.editReply({
+      content: `❌ Saved wheel **${name}** has too many entries. Maximum is 100.`
+    });
+    return;
+  }
+
+  const winnerIndex = Math.floor(Math.random() * entries.length);
+  const winner = entries[winnerIndex];
+
+  const gifBuffer = await generateWheelGIF(entries, {
+    winner,
+    colorPalette: 'uplup',
+    duration: 4000,
+    fps: 20,
+    spinRevolutions: 4
+  });
+
+  const attachment = new AttachmentBuilder(gifBuffer, {
+    name: 'wheel-spin.gif'
+  });
+
+  const embed = new EmbedBuilder()
+    .setColor(0x6C60D7)
+    .setTitle(`🎡 ${wheel.name}`)
+    .setDescription(`Requested by ${interaction.user}`)
+    .setImage('attachment://wheel-spin.gif')
+    .addFields(
+      { name: 'Winner', value: `**${winner}**`, inline: true },
+      { name: 'Entries', value: `${entries.length}`, inline: true }
+    )
+    .setFooter({ text: 'Saved Wheel Spin' });
+
+  await spinChannel.send({
+    embeds: [embed],
+    files: [attachment]
+  });
+
+  await interaction.editReply({
+    content: `✅ Spun **${wheel.name}** in ${spinChannel}. Winner: **${winner}**`
   });
 }
 
