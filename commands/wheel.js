@@ -217,7 +217,40 @@ async function handleSetup(interaction, subcommand) {
     spinChannel = interaction.options.getChannel('spin_channel', true);
     savedChannel = interaction.options.getChannel('saved_channel', true);
   }
+  const botMember = await interaction.guild.members.fetchMe();
 
+const savedMissing = getMissingChannelPerms(savedChannel, botMember, [
+  PermissionFlagsBits.ViewChannel,
+  PermissionFlagsBits.SendMessages,
+  PermissionFlagsBits.ReadMessageHistory,
+  PermissionFlagsBits.ManageMessages
+]);
+
+if (savedMissing.length > 0) {
+  await interaction.editReply({
+    content:
+      `❌ I do not have enough permissions in ${savedChannel}.\n` +
+      `Missing: ${savedMissing.join(', ')}`
+  });
+  return;
+}
+
+const spinMissing = getMissingChannelPerms(spinChannel, botMember, [
+  PermissionFlagsBits.ViewChannel,
+  PermissionFlagsBits.SendMessages,
+  PermissionFlagsBits.ReadMessageHistory,
+  PermissionFlagsBits.EmbedLinks,
+  PermissionFlagsBits.AttachFiles
+]);
+
+if (spinMissing.length > 0) {
+  await interaction.editReply({
+    content:
+      `❌ I do not have enough permissions in ${spinChannel}.\n` +
+      `Missing: ${spinMissing.join(', ')}`
+  });
+  return;
+}
   const managerRole = interaction.options.getRole('manager_role');
   const configMessage = await upsertGuildConfig({
     guild: interaction.guild,
@@ -423,41 +456,6 @@ async function getGuildConfig(guild, botUserId) {
   }
 
   return null;
-}
-
-const botMember = await interaction.guild.members.fetchMe();
-
-const savedMissing = getMissingChannelPerms(savedChannel, botMember, [
-  PermissionFlagsBits.ViewChannel,
-  PermissionFlagsBits.SendMessages,
-  PermissionFlagsBits.ReadMessageHistory,
-  PermissionFlagsBits.ManageMessages
-]);
-
-if (savedMissing.length > 0) {
-  await interaction.editReply({
-    content:
-      `❌ I do not have enough permissions in ${savedChannel}.\n` +
-      `Missing: ${savedMissing.join(', ')}`
-  });
-  return;
-}
-
-const spinMissing = getMissingChannelPerms(spinChannel, botMember, [
-  PermissionFlagsBits.ViewChannel,
-  PermissionFlagsBits.SendMessages,
-  PermissionFlagsBits.ReadMessageHistory,
-  PermissionFlagsBits.EmbedLinks,
-  PermissionFlagsBits.AttachFiles
-]);
-
-if (spinMissing.length > 0) {
-  await interaction.editReply({
-    content:
-      `❌ I do not have enough permissions in ${spinChannel}.\n` +
-      `Missing: ${spinMissing.join(', ')}`
-  });
-  return;
 }
 
 async function upsertGuildConfig({
