@@ -66,6 +66,12 @@ export const data = new SlashCommandBuilder()
   )
 
   .addSubcommand(subcommand =>
+  subcommand
+    .setName('help')
+    .setDescription('Show help for saved wheel commands')
+  )
+  
+  .addSubcommand(subcommand =>
     subcommand
       .setName('create')
       .setDescription('Create a saved wheel for this server')
@@ -104,7 +110,7 @@ export const data = new SlashCommandBuilder()
           .setName('name')
           .setDescription('Name of the wheel to spin')
           .setRequired(true)
-      )
+    )
   );
 
 function getMissingChannelPerms(channel, me, requiredPerms) {
@@ -134,6 +140,11 @@ export async function execute(interaction) {
   try {
     if (group === 'setup') {
       await handleSetup(interaction, subcommand);
+      return;
+    }
+
+    if (subcommand === 'help') {
+      await handleHelp(interaction);
       return;
     }
 
@@ -521,6 +532,46 @@ async function handleSpinWheel(interaction, config) {
 
   await interaction.editReply({
     content: `✅ Spun **${wheel.name}** in ${spinChannel}. Winner: **${winner}**`
+  });
+}
+
+async function handleHelp(interaction) {
+  const config = await getGuildConfig(interaction.guild, interaction.client.user.id);
+
+  if (!config) {
+    await interaction.reply({
+      content:
+        '🎡 **Saved Wheels Help**\n\n' +
+        'Saved wheels are not set up for this server yet.\n\n' +
+        '**To get started:**\n' +
+        '• `/wheel setup create`\n' +
+        '• `/wheel setup existing`\n\n' +
+        'Only server admins can run setup.\n\n' +
+        '**Available now:**\n' +
+        '• `/wheel help`',
+      ephemeral: true
+    });
+    return;
+  }
+
+  const canManage = canManageWheels(interaction.member, config.managerRoleId);
+
+  await interaction.reply({
+    content:
+      '🎡 **Saved Wheels Help**\n\n' +
+      `**Spin channel:** <#${config.wheelSpinChannelId}>\n` +
+      `**Saved wheels channel:** <#${config.savedWheelsChannelId}>\n` +
+      `**Manager role:** ${config.managerRoleId ? `<@&${config.managerRoleId}>` : 'None configured'}\n\n` +
+      '**Commands:**\n' +
+      '• `/wheel help`\n' +
+      '• `/wheel list`\n' +
+      '• `/wheel spin name:<wheel>`\n' +
+      '• `/wheel create`\n' +
+      '• `/wheel delete`\n' +
+      '• `/wheel setup create`\n' +
+      '• `/wheel setup existing`\n\n' +
+      `**Your access:** ${canManage ? 'You can manage saved wheels.' : 'You can spin and list wheels, but not create or delete them.'}`,
+    ephemeral: true
   });
 }
 
