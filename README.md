@@ -13,17 +13,15 @@ Credit to uplup for the core functionality of this app.
 - **Animated Wheel Spins** - Watch the name wheel spin in real-time with GIF animations
 - **Random Name Picker** - Fairly pick random winners from server members, roles, or custom lists
 - **Giveaway Ready** - Perfect for Discord giveaways with reaction-based entry
-- **Voice Channel Support** - Pick random members from voice channels
 - **Saved Wheels** - Create and reuse your wheel picker configurations
 - **Multiple Color Themes** - 5 beautiful color palettes to match your server
 
 ## Features
 
 ### Spin Types
-- **Server Members** - Random name picker from all members or filtered by role  ##Currently removed from the original fork
 - **Custom Entries** - Wheel of names with any entries you provide
 - **Reaction Picker** - Pick winners from users who reacted to a message
-- **Voice Channel** - Random selection from voice channel participants
+- **Saved Wheels** - Save wheels locally, that stay unique to YOUR server!
 
 ### Wheel Customization
 - 5 color themes (Uplup, Vibrant, Pastel, Sunset, Ocean)
