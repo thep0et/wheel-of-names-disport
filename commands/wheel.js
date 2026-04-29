@@ -563,14 +563,19 @@ async function handleHelp(interaction) {
       `**Saved wheels channel:** <#${config.savedWheelsChannelId}>\n` +
       `**Manager role:** ${config.managerRoleId ? `<@&${config.managerRoleId}>` : 'None configured'}\n\n` +
       '**Commands:**\n' +
-      '• `/wheel help`\n' +
-      '• `/wheel list`\n' +
-      '• `/wheel spin name:<wheel>`\n' +
-      '• `/wheel create`\n' +
-      '• `/wheel delete`\n' +
-      '• `/wheel setup create`\n' +
-      '• `/wheel setup existing`\n\n' +
-      `**Your access:** ${canManage ? 'You can manage saved wheels.' : 'You can spin and list wheels, but not create or delete them.'}`,
+      '• `/wheel help - show this menu`\n' +
+      '• `/spin custom - enter values sepereated by commas`\n' +
+      '• `/spin reactions - paste a message ID to spin from. Must be within the same channel. Option to use onyl reactions with a specific emojii as well`\n' +
+      '• `/wheel list - lists wheels saved in this server`\n' +
+      '• `/wheel spin name:<wheel> - spin saved wheel with name of <wheel>`\n' +
+      '• `/wheel create` - Create and save a wheel for the server\n' +
+      '• `/wheel delete - delete a wheel saved in the server`\n' +
+      '• `/wheel setup create - create and setup channels for spinning and saving saved wheels`\n' +
+      '• `/wheel setup existing - use to assign existing channels for spinning and saving saved wheels`\n\n' +
+      `**Your access:** ${canManage ? 'You can manage saved wheels.' : 'You can spin and list wheels, but not create or delete them.'}\n\n` +
+      'Upcoming features:\n' +
+      'Spin link - spin items listed on a shared wheel from spinthewheel.app\n' +
+      'other easy /spin built-in commands, such as numbered ranges, and option to add currency. EG: /spin range 50-100 Currency:Dollarbucks',
     ephemeral: true
   });
 }
