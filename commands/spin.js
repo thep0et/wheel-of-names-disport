@@ -367,10 +367,17 @@ async function extractSpinTheWheelEntries(urlString) {
   }
 
   const html = await response.text();
-  const text = htmlToPlainText(html);
+  const wheelData = extractSpinTheWheelSSRData(html);
 
-  const title = extractTitle(text);
-  const entries = extractEntriesFromSpinTheWheelText(text, title);
+  const title = typeof wheelData.Title === 'string'
+    ? wheelData.Title.trim()
+    : '';
+
+  const entries = Array.isArray(wheelData.LabelsList)
+    ? wheelData.LabelsList
+        .map(entry => String(entry).trim())
+        .filter(Boolean)
+    : [];
 
   if (entries.length < 2) {
     throw new Error('I could not extract at least 2 entries from that link.');
@@ -382,45 +389,29 @@ async function extractSpinTheWheelEntries(urlString) {
   };
 }
 
-function htmlToPlainText(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/\s+/g, ' ')
-    .trim();
+function extractSpinTheWheelSSRData(html) {
+  const match = html.match(
+    /<script[^>]*id=["']ssr_data["'][^>]*type=["']application\/json["'][^>]*>\s*([\s\S]*?)\s*<\/script>/i
+  );
+
+  if (!match?.[1]) {
+    throw new Error('Could not find Spin The Wheel page data.');
+  }
+
+  try {
+    return JSON.parse(decodeHtmlEntities(match[1].trim()));
+  } catch (error) {
+    throw new Error(`Could not parse Spin The Wheel page data: ${error.message}`);
+  }
 }
 
-function extractTitle(text) {
-  const titleMatch = text.match(/##\s*([^#]+?)\s+(?:.+?)?Get the FREE app/i);
-  if (titleMatch?.[1]) {
-    return titleMatch[1].trim();
-  }
-
-  return '';
-}
-
-function extractEntriesFromSpinTheWheelText(text, title) {
-  let working = text;
-
-  const jsWarning = 'You need to enable JavaScript to run this app.';
-  if (working.includes(jsWarning)) {
-    working = working.split(jsWarning)[1].trim();
-  }
-
-  if (title && working.includes(`## ${title}`)) {
-    working = working.split(`## ${title}`)[0].trim();
-  } else if (working.includes('##')) {
-    working = working.split('##')[0].trim();
-  }
-
-  return working
-    .split(/\s+/)
-    .map(entry => entry.trim())
-    .filter(Boolean)
-    .filter(entry => entry.length <= 80);
+function decodeHtmlEntities(value) {
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&#34;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
 }
