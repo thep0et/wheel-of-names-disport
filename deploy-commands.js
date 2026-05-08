@@ -25,7 +25,10 @@ if (!process.env.DISCORD_TOKEN || !process.env.DISCORD_CLIENT_ID) {
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
-async function deployCommands() {
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 5000;
+
+async function deployCommands(attempt = 1) {
   try {
     console.log(`🔄 Started refreshing ${commands.length} application (/) commands.`);
 
@@ -45,6 +48,12 @@ async function deployCommands() {
     console.log('   For instant testing, use guild-specific commands (see documentation).');
 
   } catch (error) {
+    const isRetryable = error.status >= 500 || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT';
+    if (isRetryable && attempt < MAX_RETRIES) {
+      console.warn(`⚠️ Attempt ${attempt}/${MAX_RETRIES} failed (${error.status || error.code}). Retrying in ${RETRY_DELAY_MS / 1000}s...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+      return deployCommands(attempt + 1);
+    }
     console.error('❌ Error deploying commands:', error);
     process.exit(1);
   }
