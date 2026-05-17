@@ -71,7 +71,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   console.log(`   https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&permissions=274878024768&scope=bot%20applications.commands\n`);
 
   // Set activity
-  readyClient.user.setActivity('/spin to pick a winner!', { type: 0 });
+  readyClient.user.setActivity('You /spin me right round right round!', { type: 0 });
 });
 
 // Interaction handler
