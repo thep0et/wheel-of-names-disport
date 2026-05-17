@@ -148,10 +148,12 @@ export async function execute(interaction) {
       return;
     }
 
+    await interaction.deferReply({ ephemeral: true });
+
     const config = await getGuildConfig(interaction.guild, interaction.client.user.id);
 
     if (!config) {
-      await interaction.reply({
+      await interaction.editReply({
         content: '❌ Saved wheels are not set up for this server yet. Run `/wheel setup create` or `/wheel setup existing` first.',
         ephemeral: true
       });
@@ -176,7 +178,7 @@ export async function execute(interaction) {
         return;
 
       default:
-        await interaction.reply({
+        await interaction.editReply({
           content: '❌ Unknown /wheel command.',
           ephemeral: true
         });
@@ -297,7 +299,6 @@ async function handleSetup(interaction, subcommand) {
 }
 
 async function handleList(interaction, config) {
-  await interaction.deferReply({ ephemeral: true });
 
   const savedChannel = await interaction.guild.channels.fetch(config.savedWheelsChannelId);
   if (!savedChannel || savedChannel.type !== ChannelType.GuildText) {
@@ -342,8 +343,6 @@ async function handleCreateWheel(interaction, config) {
     });
     return;
   }
-
-  await interaction.deferReply({ ephemeral: true });
 
   const name = interaction.options.getString('name', true).trim();
   const entries = interaction.options
@@ -412,8 +411,6 @@ async function handleDeleteWheel(interaction, config) {
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
-
   const name = interaction.options.getString('name', true).trim();
   const savedChannel = await interaction.guild.channels.fetch(config.savedWheelsChannelId);
 
@@ -440,7 +437,6 @@ async function handleDeleteWheel(interaction, config) {
 }
 
 async function handleSpinWheel(interaction, config) {
-  await interaction.deferReply({ ephemeral: true });
 
   const name = interaction.options.getString('name', true).trim();
 
