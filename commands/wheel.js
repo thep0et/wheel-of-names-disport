@@ -536,10 +536,11 @@ async function handleSpinWheel(interaction, config) {
 }
 
 async function handleHelp(interaction) {
+  await interaction.deferReply({ ephemeral: true });
   const config = await getGuildConfig(interaction.guild, interaction.client.user.id);
 
   if (!config) {
-    await interaction.reply({
+    await interaction.editreply({
       content:
         '🎡 **Saved Wheels Help**\n\n' +
         'Saved wheels are not set up for this server yet.\n\n' +
@@ -556,7 +557,7 @@ async function handleHelp(interaction) {
 
   const canManage = canManageWheels(interaction.member, config.managerRoleId);
 
-  await interaction.reply({
+  await interaction.editreply({
     content:
       '🎡 **Saved Wheels Help**\n\n' +
       `**Spin channel:** <#${config.wheelSpinChannelId}>\n` +
